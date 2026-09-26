@@ -3,8 +3,13 @@ FROM php:7.3.33-apache-bullseye
 ARG DEBIAN_SNAPSHOT=20260903T220410Z
 ARG DEBIAN_SECURITY_SNAPSHOT=20260903T220410Z
 
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
+# Debian Bullseye security repository is no longer reliable after EOL.
+# Use immutable Debian snapshots instead.
 RUN set -eux; \
     rm -f /etc/apt/sources.list.d/*; \
+    rm -rf /var/lib/apt/lists/*; \
     printf '%s\n' \
         "deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT}/ bullseye main" \
         "deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT}/ bullseye-updates main" \
@@ -32,6 +37,10 @@ RUN set -eux; \
     a2enmod rewrite; \
     rm -rf /var/lib/apt/lists/*
 
-LABEL org.opencontainers.image.title="Lemon Internet PHP 7.3.33 Apache"
-LABEL org.opencontainers.image.description="Legacy PHP 7.3.33 Apache image with reproducible Debian Bullseye snapshots"
-LABEL org.opencontainers.image.version="7.3.33"
+# Composer version compatible with PHP 7.3
+COPY --from=composer:2.2 /usr/bin/composer /usr/local/bin/composer
+
+LABEL \
+    org.opencontainers.image.title="PHP 7.3.33 Apache" \
+    org.opencontainers.image.description="PHP 7.3.33 Apache Bullseye base image" \
+    org.opencontainers.image.source="https://github.com/lemoninternet/php73-apache"
